@@ -3,11 +3,20 @@ public class BinaryNode<K extends Comparable,T>{
     private K key;
     private T element;
     private BinaryNode left, right, parent;
+    private int height;
 
     public BinaryNode(T element, K key, BinaryNode parent) {
         this.key = key;
         this.element = element;
         this.parent = parent;
+    }
+
+    public int getHeight(){
+        return height;
+    }
+
+    public void setHeight(int height){
+        this.height = height;
     }
 
     public boolean isLeaf(){
