@@ -1,0 +1,42 @@
+<project>
+
+	<target name = "build">
+		<mkdir dir = "build/classes"/>
+		<javac srcdir = "src" destdir = "build/classes" debug = "true" debuglevel = "lines,vars,source"/>
+	</target>
+
+	<target name = "jar">
+		<antcall target = "build"/>
+		<mkdir dir = "build/jar"/>
+		<jar destfile = "build/jar/AVLTree.jar" basedir = "build/classes">
+			<manifest>
+				<attribute name="DependencyFinder" value="main" />
+				<attribute name="Main-Class" value="AVLTree" />
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="run">
+		<java jar="build/jar/AVLTree.jar" fork="true"/>
+	</target>
+
+	<target name="clean">
+		<delete dir="build"/>
+		<delete dir="docs"/>
+	</target>
+
+	<target name="docs">
+		<mkdir dir="docs"/>
+		<javadoc encoding="UTF-8" 
+					sourcepath="src/classes/"
+					destdir="docs"
+					author="true"
+					windowtitle="Practica06"
+					doctitle="Practica06"
+					version="true">
+			<fileset dir="src" defaultexcludes="yes">
+                <include name="**/*.java"/>
+            </fileset>
+        </javadoc>
+	</target>
+</project>
