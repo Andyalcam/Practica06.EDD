@@ -11,6 +11,25 @@ public class BinaryNode<K extends Comparable,T>{
         this.parent = parent;
     }
 
+
+    /**
+     * Metodo auxiliar para conocer la altura de un nodo
+     * @param node nodo del que se desea conocer la altura
+     * @return int - altura del nodo
+     */
+    public int getHeightNode(BinaryNode node) {
+        if(!node.isLeaf()){//Cuando es hoja
+            return 0;
+        }else if(node.hasLeft() && node.hasRight()){//Cuando tiene dos hijos
+            int auxMax = Math.max(getHeightNode(node.getLeft()), getHeightNode(node.getRight()));
+            return auxMax+1;
+        }else{//Cuando tiene un hijo
+            boolean hasLeft = node.hasLeft();
+            return 1 + (hasLeft ? getHeightNode(node.getLeft()) : getHeightNode(node.getRight()));
+        }
+    }
+
+
     public int getHeight(){
         return height;
     }

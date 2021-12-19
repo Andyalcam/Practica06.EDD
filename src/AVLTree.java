@@ -6,25 +6,16 @@ public class AVLTree <K extends Comparable,T> implements TDABinarySearchTree<K,T
     private BinaryNode<K, T> root;
 
     /**
-     * Metodo auxiliar para conocer la altura de un nodo
-     * @param node nodo del que se desea conocer la altura
-     * @return int - altura del nodo
-     */
-    private int height (BinaryNode node) {
-        return (node == null) ? -1 : //node.height();
-    }
-
-    /**
      * Metodo para rotar a la izquierda
      * @param node - nodo raiz del subarbol que se va a rotar
      * @return BinaryNode - Nodo raiz del subarbol despues de la rotacion
      */
     private BinaryNode rotateLeft(BinaryNode node) {
         BinaryNode aux = node.getLeft();
-        node.getLeft() = aux.getRight();
-        aux.getRight() = node;
-        node.setHeight() = max(height(node.getLeft()), height(node.getRight())) + 1;
-        aux.setHeight() = max(height(aux.getLeft()), node.getHeight()) + 1;
+        node.setLeft(aux.getRight());
+        aux.setRight(node);
+        node.setHeight(Math.max(node.getLeft().getHeightNode(node.getLeft()), node.getRight().getHeightNode(node.getRight())) + 1);
+        aux.setHeight(Math.max(aux.getLeft().getHeightNode(aux.getLeft()), node.getRight().getHeightNode(node.getRight())) + 1);
         return aux;
     }
 
@@ -35,10 +26,10 @@ public class AVLTree <K extends Comparable,T> implements TDABinarySearchTree<K,T
      */
     private BinaryNode rotateRight(BinaryNode node) {
         BinaryNode aux = node.getRight();
-        node.getRight() = aux.getLeft();
-        aux.getLeft() = node;
-        node.setHeight() = max(height(node.getLeft()), height(node.getRight())) + 1;
-        aux.setHeight() = max(altura(aux.getRight()), node.getHeight()) + 1;
+        node.setRight(aux.getLeft());
+        aux.setLeft(node);
+        node.setHeight(Math.max(node.getLeft().getHeightNode(node.getLeft()), node.getRight().getHeightNode(node.getRight())) + 1);
+        aux.setHeight(Math.max(aux.getRight().getHeightNode(aux.getRight()), node.getRight().getHeightNode(node.getRight()))+ 1);
         return aux;
     }
 
