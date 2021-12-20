@@ -3,33 +3,39 @@ import java.lang.NullPointerException;
 import java.util.InputMismatchException;
 public class AVLTree <K extends Comparable,T> implements TDABinarySearchTree<K,T>{
 
-    private BinaryNode<K, T> root;
+    private AVLNode<K, T> root;
 
     /**
      * Metodo para rotar a la izquierda
      * @param node - nodo raiz del subarbol que se va a rotar
-     * @return BinaryNode - Nodo raiz del subarbol despues de la rotacion
+     * @return AVLNode - Nodo raiz del subarbol despues de la rotacion
      */
-    private BinaryNode rotateLeft(BinaryNode node) {
-        BinaryNode aux = node.getLeft();
-        node.setLeft(aux.getRight());
-        aux.setRight(node);
-        node.setHeight(Math.max(node.getLeft().getHeightNode(node.getLeft()), node.getRight().getHeightNode(node.getRight())) + 1);
-        aux.setHeight(Math.max(aux.getLeft().getHeightNode(aux.getLeft()), node.getRight().getHeightNode(node.getRight())) + 1);
-        return aux;
+    private AVLNode rotateLeft(AVLNode node) {
+        if (node == null) {
+            return null;
+        }
+        AVLNode aux = node.getLeft();
+        node.setLeft(aux.getRight());  
+        aux.setRight(node); 
+        aux.setHeight();
+        node.setHeight();
+        return aux;      
     }
 
     /**
      * Metodo para rotar a la izquierda
      * @param node nodo raiz del subarbol que se va a rotar
-     * @return BinaryNode - nodo raiz del subarbol despues de la rotacion
+     * @return AVLNode - nodo raiz del subarbol despues de la rotacion
      */
-    private BinaryNode rotateRight(BinaryNode node) {
-        BinaryNode aux = node.getRight();
+    private AVLNode rotateRight(AVLNode node) {
+        if (node == null) {
+            return null;
+        }
+        AVLNode aux = node.getRight();
         node.setRight(aux.getLeft());
         aux.setLeft(node);
-        node.setHeight(Math.max(node.getLeft().getHeightNode(node.getLeft()), node.getRight().getHeightNode(node.getRight())) + 1);
-        aux.setHeight(Math.max(aux.getRight().getHeightNode(aux.getRight()), node.getRight().getHeightNode(node.getRight()))+ 1);
+        aux.setHeight();
+        node.setHeight();
         return aux;
     }
 
@@ -41,7 +47,7 @@ public class AVLTree <K extends Comparable,T> implements TDABinarySearchTree<K,T
      */
     @Override
     public T retrieve(K k) {
-        BinaryNode node = retrieve(root,k);
+        AVLNode node = retrieve(root,k);
         if(node == null) //Si no existe el elemento.
             return null;
         return (T) node.getElement();
@@ -54,7 +60,7 @@ public class AVLTree <K extends Comparable,T> implements TDABinarySearchTree<K,T
      * @param key llave del nodo que buscamos
      * @return El nodo con la clave que buscamos
      */
-    private BinaryNode retrieve(BinaryNode node, K key){
+    private AVLNode retrieve(AVLNode node, K key){
         //Si no existe el nodo
         if(node == null)
             return null;
@@ -80,10 +86,12 @@ public class AVLTree <K extends Comparable,T> implements TDABinarySearchTree<K,T
     @Override
     public void insert(T e, K k) {
         if(isEmpty()){ //Si el árbol es vacío.
-            root = new BinaryNode<>(e, k, null);
+            root = new AVLNode<>(e, k, null);
             return;
         }
-        insert(e, k, root);
+        AVLNode v = insert(e, k, root);
+        //System.out.println(v);
+        //rebalance(v);
     }
 
     /**
@@ -93,20 +101,33 @@ public class AVLTree <K extends Comparable,T> implements TDABinarySearchTree<K,T
      * @param node - nodo con el que compararemos.
      */
 
-    private void insert(T e, K key, BinaryNode node){
-        if(node.getKey().compareTo(key) >= 0){//Si la clave del nodo a insertar es menor o igual al nodo existente
-            if(node.hasLeft()){
-                insert(e, key, node.getLeft());
-            }else{
-                node.setLeft(new BinaryNode<>(e, key, node));
+    private AVLNode insert(T e, K key, AVLNode node){
+        if(key.compareTo(node.getKey())<0){ // Verificamos sobre el izquierdo
+            if(!node.hasLeft()){ // Insertamos en esa posición
+                node.setLeft(new AVLNode(e, key, node));
+                System.out.println("oa");
+                return node.getLeft();
+            } else { // Recursión sobre el izquierdo
+                return insert(e, key, node.getLeft());
             }
-        }else{//Si la clave del nodo a insertar es mayor al nodo existente.
-            if(node.hasRight()){
-                insert(e, key, node.getRight());
-            }else{
-                node.setRight(new BinaryNode<>(e, key, node));
+        } else{ // Verificamos sobre la derecha
+            if(!node.hasRight()){ // Insertamos en esa posición
+                node.setRight(new AVLNode(e, key, node));
+                System.out.println("crayoa");
+                return node.getRight();
+            } else { // Recursión sobre el derecho
+                return insert(e, key, node.getRight());
             }
         }
+    }
+
+    private void swap(AVLNode v, AVLNode w){
+        T element = (T) v.getElement();
+        K key = (K) v.getKey();
+        v.setElement(w.getElement());
+        v.setKey(w.getKey());
+        w.setElement(element);
+        w.setKey(key);
     }
 
     /**
@@ -117,11 +138,22 @@ public class AVLTree <K extends Comparable,T> implements TDABinarySearchTree<K,T
      * null si el nodo con clave k no existe.
      */
     @Override
-    public T delete(K k) {
-        if(this.isEmpty()) //Si el árbol es vacío regresa null
+    public T delete(K k){
+        AVLNode v = retrieve(root, k);
+
+        // El elemento que queremos eliminar no está en el árbol
+        if(v == null){
             return null;
-        else
-            return delete(retrieve(root,k));
+        }
+
+        T deleted = (T) v.getElement();
+
+        // Eliminar con auxiliar
+        AVLNode w = delete(v);
+
+        //rebalance(w);
+
+        return deleted;
     }
 
     /**
@@ -129,77 +161,72 @@ public class AVLTree <K extends Comparable,T> implements TDABinarySearchTree<K,T
      * @param node nodo que eliminaremos.
      * @return elemento del nodo que se borró.
      */
-
-    private T delete(BinaryNode node){
-        if(node == null){ //Si no existe el elemento regresará null.
-            throw new NullPointerException();
-        }
-
-        BinaryNode aux;
-
-        T element = (T) node.getElement();
-
-        if(node.hasLeft()){//Si el elemento a borrar tiene hijo izquierdo.
-            aux = findMaxAux(node.getLeft());
-            if(aux.isLeaf()){//Verificaremos si el elemento más grande es una hoja.
-                if(aux.getParent().equals(node))//Si el nodo máximo es hijo del elemento a borrar.
-                    node.setLeft(null);
-                else//Por si hay más nodos entre el nodo a borrar y el máximo.
-                    aux.getParent().setRight(null);
-            }else{//Si el elemento máximo no es una hoja.
-                aux.getLeft().setParent(aux.getParent());
-                aux.getParent().setRight(aux.getLeft());
+    private AVLNode delete(AVLNode node){
+        if(node.getLeft()!=null && node.getRight()!=null){ // Tiene dos hijos
+            AVLNode min = findMin(node.getRight());
+            swap(min, node);
+            return delete(min);
+        } else if(node.isLeaf()){ // No tiene hijos
+            boolean isLeft = node.getParent().getLeft() == node;
+            if(isLeft){
+                node.getParent().setLeft(null);
+            }else{
+                node.getParent().setRight(null);
             }
-        }else{//Verificaremos si tiene hijo derecho o no es una hoja.
-            if(node.hasRight()){//Si hay hijo derecho.
-                aux = findMaxAux(node.getRight());
-                if(aux.isLeaf()){//Verificaremos si el elemento más grande es una hoja.
-                    if(aux.getParent().equals(node)) //Si el nodo máximo es hijo del elemento a borrar.
-                        node.setRight(null);
-                    else //Por si hay más nodos entre el nodo a borrar y el máximo.
-                        aux.getParent().setRight(null);
-                }else{//Si el elemento máximo no es una hoja.
-                    aux.getLeft().setParent(aux.getParent());
-                    aux.getParent().setRight(aux.getLeft());
-                }
-            }else{//Si no tiene hijos
-                if(node.getKey().compareTo(node.getParent().getKey()) < 0) //Si es hijo izquierdo.
-                    node.getParent().setLeft(null);
-                else //Si es hijo derecho.
-                    node.getParent().setRight(null);
-                return element;
+            return node.getParent();
+        }else{ // Sólo tiene un hijo
+            if(node.hasLeft()){
+                swap(node, node.getLeft());
+                return delete(node.getLeft());
+            }else{
+                swap(node, node.getRight());
+                return delete(node.getRight());
             }
         }
-        node.setElement(aux.getElement());
-        node.setKey(aux.getKey());
-        return element;
     }
 
-
-    /**
-     * Encuentra la clave k con valor o peso mínimo del árbol.
-     * @param node - nodo base del que encontraremos el mínimo.
-     * @return el elemento con llave de peso mínimo.
-     */
-    @Override
-    public T findMin(BinaryNode node) {
-        if(this.isEmpty())
-            return null;
-        else{
-            return (T) findMinAux(node).getElement();
+    public void rebalance(AVLNode node){
+        updateHeights(node);
+        boolean isLeft = node.getParent().getLeft() == node;
+        if (!isLeft) {
+            if(node.getHeight() == (node.getParent().getHeight() - 1)){
+                System.out.println("caso1");
+                updateHeights(rotateLeft(node.getParent().getParent()));
+            }else if (node.getHeight() == (node.getParent().getHeight() - 2)) {
+                System.out.println("caso2");
+                AVLNode aux = rotateRight(node.getParent());
+                updateHeights(rotateLeft(aux.getParent()));
+            }
+        }else{
+            if(node.getHeight() == (node.getParent().getHeight() - 1)){
+                System.out.println("caso3");
+                updateHeights(rotateRight(node.getParent().getParent()));
+            }else if (node.getHeight() == (node.getParent().getHeight() - 2)) {
+                System.out.println("caso4");
+                AVLNode aux = rotateLeft(node.getParent());
+                updateHeights(rotateRight(aux.getParent()));
+            }
         }
+    }
+
+    public void updateHeights(AVLNode node){
+        if (node == null) {
+            return;
+        }
+        node.getHeight();
+        updateHeights(node.getParent());
     }
 
     /**
      * Método que encuentra el elemento mínimo del árbol.
      * @return El elemento con la llave de peso mínimo.
      */
-
+    @Override
     public T findMin(){
        if(this.isEmpty())
            return null;
        else
-           return (T) findMinAux(root).getElement();
+           return (T) findMin(root).getElement();
     }
 
     /**
@@ -207,26 +234,13 @@ public class AVLTree <K extends Comparable,T> implements TDABinarySearchTree<K,T
      * @param node - Nodo base del que encontraremos el mínimo.
      * @return Nodo del elemento mínimo.
      */
-
-    private BinaryNode findMinAux(BinaryNode node){
+    private AVLNode findMin(AVLNode node){
+        if(node == null)
+            return null;
         if(node.hasLeft())
-            return findMinAux(node.getLeft());
+            return findMin(node.getLeft());
         else
             return node;
-    }
-
-
-    /**
-     * Encuentra la clave k con valor o peso máximo del árbol.
-     *
-     * @return el elemento con llave de peso máximo.
-     */
-    @Override
-    public T findMax(BinaryNode node) {
-        if(this.isEmpty())
-            return null;
-        else
-            return (T) findMaxAux(node).getElement();
     }
 
     /**
@@ -234,11 +248,12 @@ public class AVLTree <K extends Comparable,T> implements TDABinarySearchTree<K,T
      *
      * @return el elemento con llave de peso máximo
      */
+    @Override
     public T findMax(){
         if(this.isEmpty())
             return null;
         else
-            return (T) findMaxAux(root).getElement();
+            return (T) findMax(root).getElement();
     }
 
 
@@ -247,9 +262,11 @@ public class AVLTree <K extends Comparable,T> implements TDABinarySearchTree<K,T
      * @param node - nodo del que tomaremos como base para encontrar el máximo.
      * @return nodo del elemento máximo.
      */
-    private BinaryNode findMaxAux(BinaryNode node){
+    private AVLNode findMax(AVLNode node){
+        if(node == null)
+            return null;
         if(node.hasRight())
-            return findMaxAux(node.getRight());
+            return findMax(node.getRight());
         else
             return node;
     }
@@ -266,7 +283,7 @@ public class AVLTree <K extends Comparable,T> implements TDABinarySearchTree<K,T
      * Método auxiliar de preorden para hacer el recorrido del árbol.
      * @param node - nodo del que empezaremos el recorrido.
      */
-    public void preorden(BinaryNode node){
+    public void preorden(AVLNode node){
          if(node == null)
             return;
         
@@ -287,7 +304,7 @@ public class AVLTree <K extends Comparable,T> implements TDABinarySearchTree<K,T
      * Método auxiliar de inorden para recorrer el árbol.
      * @param node - nodo del que empezaremos.
      */
-    public void inorden(BinaryNode node){
+    public void inorden(AVLNode node){
         if(node == null)
             return;
         
@@ -309,7 +326,7 @@ public class AVLTree <K extends Comparable,T> implements TDABinarySearchTree<K,T
      * Método auxiliar de postorden para hacer recorrido del árbol.
      * @param node - nodo del que empezaremos.
      */
-     public void postorden(BinaryNode node){
+     public void postorden(AVLNode node){
         if( node == null )
             return;
         postorden(node.getLeft());
@@ -325,6 +342,21 @@ public class AVLTree <K extends Comparable,T> implements TDABinarySearchTree<K,T
     @Override
     public boolean isEmpty() {
         return root == null;
+    }
+
+    /**
+     * Metodo que deja el árbol vacio
+     */
+    public void clear(){
+        root = null;
+    }
+
+    public int treeHeight(){
+        return treeHeight(root);
+    }
+
+    public int treeHeight(AVLNode node){
+        return node.getHeight();
     }
 
     public static void main(String[] args) {
@@ -361,7 +393,9 @@ public class AVLTree <K extends Comparable,T> implements TDABinarySearchTree<K,T
                 System.out.println("7. Obtener elemento");
                 System.out.println("8. Encontrar Máximo");
                 System.out.println("9. Encontrar Mínimo");
-                System.out.println("10. Salir");
+                System.out.println("10. Mostrar altura del arbol");
+                System.out.println("11. Borrar el arbol");
+                System.out.println("12. Salir");
                 System.out.println("--------------------------------------------");
                 System.out.println("Ingresa una opcion del menu: ");
                 opc = in.nextInt();
@@ -371,15 +405,15 @@ public class AVLTree <K extends Comparable,T> implements TDABinarySearchTree<K,T
                         System.out.println("Ingresa el elemento que quieres insertar y su clave. Ej: 2,3");
                         repe = true;
                         while (repe) {
-                            try {
+                            //try {
                                 tupla = on.nextLine().trim();
                                 a = (tupla.split(",")[0]).trim();
                                 b = Integer.parseInt(tupla.split(",")[1]);
                                 binarySearchTree.insert(a, b);
                                 repe = false;
-                            } catch (Exception e) {
-                                System.out.println(yellow + "\t Intentalo de nuevo. Sigue el ejemplo :)" + reset);
-                            }
+                            //} catch (Exception e) {
+                              //  System.out.println(yellow +e+ "\t Intentalo de nuevo. Sigue el ejemplo :)" + reset);
+                            //1}
                         }
                         break;
                     case 2:
@@ -474,6 +508,12 @@ public class AVLTree <K extends Comparable,T> implements TDABinarySearchTree<K,T
                         }
                         break;
                     case 10:
+                        System.out.println(binarySearchTree.treeHeight());
+                        break;
+                    case 11:
+                        binarySearchTree.clear();
+                        break;
+                    case 12:
                         System.out.println(purple + "\tHasta luego :)" + reset + "\n");
                         excep = false;
                         break;
@@ -482,8 +522,8 @@ public class AVLTree <K extends Comparable,T> implements TDABinarySearchTree<K,T
                         break;
                 }
 
-            } catch (Exception e) {
-                System.out.println(yellow + "\tDebes ingresar un número\tIntentalo de nuevo" + reset);
+            } catch (InputMismatchException e) {
+                System.out.println(yellow +e+ "\tDebes ingresar un número\tIntentalo de nuevo" + reset);
                 in.next();
                 excep = true;
             }

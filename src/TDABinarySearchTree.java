@@ -33,13 +33,13 @@ public interface TDABinarySearchTree<K extends Comparable, T>{
 	* Encuentra la clave k con valor o peso mínimo del árbol.
 	* @return el elemento con llave de peso mínimo.
 	*/
-	public T findMin(BinaryNode node);
+	public T findMin();
 
 	/**
 	* Encuentra la clave k con valor o peso máximo del árbol.
 	* @return el elemento con llave de peso máximo.
 	*/
-	public T findMax(BinaryNode node);
+	public T findMax();
 
 	/**
 	 * Recorre el árbol en preorden.
