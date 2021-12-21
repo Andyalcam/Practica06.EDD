@@ -71,7 +71,7 @@ public class AVLNode<K extends Comparable,T>{
     }
 
     public String toString(){
-        return (String)getElement();
+        return "Elemento: " + (String)getElement() + " -  Altura: " + getAltura();
     }
 
     /**
@@ -79,13 +79,13 @@ public class AVLNode<K extends Comparable,T>{
      */
     public int getHeight(){
         // Si este nodo es hoja
-        if(left == null && right==null){
+        if(left == null && right == null){
             return 0;
-        } else if(left != null && right != null){ // Dos hijos
+        }else if(left != null && right!=null){ // Dos hijos
             int max = left.getHeight() > right.getHeight() ? left.getHeight() : right.getHeight();
             return 1 + max;
-        } else{ // Tiene solo un hijo
-            return 1 + (hasLeft() ? left.getHeight() : right.getHeight());
+        }else{ // Tiene solo un hijo
+            return 1 + (left != null ? left.getHeight() : right.getHeight());
         }
     }
 
@@ -95,4 +95,9 @@ public class AVLNode<K extends Comparable,T>{
     public void setHeight(){
         this.height = this.getHeight();
     }
+
+    public int getAltura(){
+        return height;
+    }
+
 }

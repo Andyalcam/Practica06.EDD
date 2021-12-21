@@ -11,15 +11,30 @@ public class AVLTree <K extends Comparable,T> implements TDABinarySearchTree<K,T
      * @return AVLNode - Nodo raiz del subarbol despues de la rotacion
      */
     public AVLNode rotateLeft(AVLNode node) {
-        if (node == null) {
-            return null;
+        System.out.println("Rotación a la izquierda");
+        if(node == root) {
+            AVLNode aux = node.getRight();
+            node.setRight(aux.getLeft());
+            aux.setLeft(node);
+            aux.setParent(node.getParent());
+            root = aux;
+            node.setParent(aux);
+            aux.setHeight();
+            node.setHeight();
+            return aux;
+        }else{
+            System.out.println("Node: " + node);
+            AVLNode aux = node.getRight();
+            System.out.println("Aux: " + aux);
+            node.setRight(aux.getLeft());
+            aux.setLeft(node);
+            aux.setParent(node.getParent());
+            node.getParent().setRight(aux);
+            node.setParent(aux);
+            aux.setHeight();
+            node.setHeight();
+            return aux;
         }
-        AVLNode aux = node.getLeft();
-        node.setLeft(aux.getRight());  
-        aux.setRight(node); 
-        aux.setHeight();
-        node.setHeight();
-        return aux;      
     }
 
     /**
@@ -28,34 +43,59 @@ public class AVLTree <K extends Comparable,T> implements TDABinarySearchTree<K,T
      * @return AVLNode - nodo raiz del subarbol despues de la rotacion
      */
     public  AVLNode rotateRight(AVLNode node) {
-        if (node == null) {
-            return null;
+        System.out.println("Rotacion derecha");
+        if (node == root) {
+            AVLNode aux = node.getLeft();
+            node.setLeft(aux.getRight());
+            aux.setRight(node);
+            aux.setParent(node.getParent());
+            root = aux;
+            node.setParent(aux);
+            aux.setHeight();
+            node.setHeight();
+            return aux;
+        }else {
+            System.out.println("Node: " + node);
+            AVLNode aux = node.getLeft();
+            System.out.println("Aux: " + aux);
+            node.setLeft(aux.getRight());
+            aux.setRight(node);
+            aux.setParent(node.getParent());
+            node.getParent().setLeft(aux);
+            node.setParent(aux);
+            System.out.println("Alturas");
+            aux.setHeight();
+            node.setHeight();
+            System.out.println("Termino");
+            return aux;
         }
-        AVLNode aux = node.getRight();
-        node.setRight(aux.getLeft());
-        aux.setLeft(node);
-        aux.setHeight();
-        node.setHeight();
-        return aux;
     }
 
     public AVLNode doubleRotateLeft(AVLNode node){
+        System.out.println("Rotacion doble izquierda");
         if (node == null) {
             return null;
         }
         AVLNode aux;
-        node.setLeft(rotateRight(node.getLeft()));
-        aux = rotateLeft(node);
+        node.setLeft(rotateLeft(node.getLeft()));
+        aux = rotateRight(node);
+
+        System.out.println(aux);
+
         return aux;
+
     }
 
     public AVLNode doubleRotateRight(AVLNode node){
-        if (node == null) {
+        System.out.println("Rotacion doble derecha");
+        if(node == null) {
             return null;
         }
         AVLNode aux;
-        node.setRight(rotateLeft(node.getRight()));
+        rotateLeft(node.getLeft());
+        System.out.println(root.getLeft() + "ROOT");
         aux = rotateRight(node);
+        System.out.println(aux + "Oa");
         return aux;
     }
 
@@ -107,11 +147,15 @@ public class AVLTree <K extends Comparable,T> implements TDABinarySearchTree<K,T
     public void insert(T e, K k) {
         if(isEmpty()){ //Si el árbol es vacío.
             root = new AVLNode<>(e, k, null);
+            System.out.println("Insertamos: " + e);
             return;
         }
+
         AVLNode v = insert(e, k, root);
-        //System.out.println(v);
-        rebalance(v);
+        System.out.println("Insertamos: " + e);
+        updateHeights(v);
+        rebalance(v, v.getParent());
+
     }
 
     /**
@@ -129,7 +173,7 @@ public class AVLTree <K extends Comparable,T> implements TDABinarySearchTree<K,T
             } else { // Recursión sobre el izquierdo
                 return insert(e, key, node.getLeft());
             }
-        } else{ // Verificamos sobre la derecha
+        }else{ // Verificamos sobre la derecha
             if(!node.hasRight()){ // Insertamos en esa posición
                 node.setRight(new AVLNode(e, key, node));
                 return node.getRight();
@@ -180,7 +224,7 @@ public class AVLTree <K extends Comparable,T> implements TDABinarySearchTree<K,T
      * @return elemento del nodo que se borró.
      */
     private AVLNode delete(AVLNode node){
-        if(node.getLeft()!=null && node.getRight()!=null){ // Tiene dos hijos
+        if(node.hasLeft() && node.hasRight()){ // Tiene dos hijos
             AVLNode min = findMin(node.getRight());
             swap(min, node);
             return delete(min);
@@ -203,8 +247,63 @@ public class AVLTree <K extends Comparable,T> implements TDABinarySearchTree<K,T
         }
     }
 
-    public void rebalance(AVLNode node){
-        updateHeights();
+    public void rebalance(AVLNode v, AVLNode auxRoot){
+        if(auxRoot == null){
+            System.out.println("Llegué a la raíz");
+            return;
+        }else{
+            AVLNode auxParent = auxRoot;
+
+            int alturaIzquierdo = auxParent.hasLeft() ? auxParent.getLeft().getAltura() : -1;
+            int alturaDerecho = auxParent.hasRight() ? auxParent.getRight().getAltura() : -1;
+
+            if(Math.abs(alturaIzquierdo-alturaDerecho) == 2){
+
+                if(v.getKey().compareTo(root.getKey()) > 0){
+
+                    if(v.getKey().compareTo(auxRoot.getRight().getKey()) > 0){
+                        auxParent = rotateLeft(auxRoot);
+                        //System.out.println("Rotacion a la izquierda");
+                    }else{
+                        auxParent = doubleRotateLeft(auxRoot);
+                        //System.out.println("Rotacion doble a la izquierda");
+                    }
+                }else{
+                    if(v.getKey().compareTo(auxRoot.getLeft().getKey()) <= 0){
+                        auxParent = rotateRight(auxRoot);
+                        //System.out.println("Rotación a la derecha");
+                    }else{
+                        auxParent = doubleRotateRight(auxRoot);
+                        //System.out.println("Rotacion doble a la derecha");
+                    }
+                }
+            }
+            updateHeights(v);
+            rebalance(v, auxRoot.getParent());
+
+            /*if(auxParent.hasLeft() && auxParent.getLeft() == v){//Si es hijo izquierdo
+                if(alturaIzquierdo - alturaDerecho == 2){
+                    System.out.println("Checar Rotación a la izquierda");
+                    if(v.getKey().compareTo(auxParent.getLeft().getKey()) <= 0)
+                        auxParent = rotateLeft(auxParent);
+                    else
+                        auxParent = doubleRotateLeft(auxParent);
+                }
+
+            }else{//Si es hijo derecho
+                if(alturaDerecho - alturaIzquierdo == 2){
+                    System.out.println("Checar rotacion derecha");
+                    if (v.getKey().compareTo(auxParent.getRight().getKey()) <= 0)
+                        auxParent = rotateRight(auxParent);
+                    else
+                        auxParent = doubleRotateRight(auxParent);
+                }
+            }*/
+
+        }
+
+
+        /*
         AVLNode auxParent = node.getParent();
         if (auxParent.getLeft().getHeight() - auxParent.getRight().getHeight() == 2) {
             if (node.getKey().compareTo(auxParent.getLeft().getKey()) < 0) {
@@ -224,7 +323,7 @@ public class AVLTree <K extends Comparable,T> implements TDABinarySearchTree<K,T
                 auxParent = doubleRotateRight(auxParent);
             }
         }
-        auxParent.setHeight();
+        auxParent.setHeight();*/
         /*boolean isLeft = node.getParent().getLeft() == node;
         if (!isLeft) {
             if(node.getHeight() == (node.getParent().getHeight() - 1)){
@@ -249,8 +348,13 @@ public class AVLTree <K extends Comparable,T> implements TDABinarySearchTree<K,T
         }*/
     }
 
-    public void updateHeights(){
-        root.setHeight();
+    public void updateHeights(AVLNode v){
+        if(v == null){
+            return;
+        }else{
+            v.setHeight();
+            updateHeights(v.getParent());
+        }
     }
 
     /**
@@ -323,7 +427,7 @@ public class AVLTree <K extends Comparable,T> implements TDABinarySearchTree<K,T
          if(node == null)
             return;
         
-        System.out.print(node.getElement() + " ");   
+        System.out.print(node + ",");
         preorden(node.getLeft());  
         preorden(node.getRight());
     }
